@@ -95,7 +95,7 @@ def main():
     dir = tempfile.mkdtemp()
     try:
         # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
-        cmd = "ffmpeg -y -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
+        cmd = "ffmpeg -y -r 30 -i %s %s 2> /dev/null" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
         print >> sys.stderr, "Decomposing video to images:", cmd
         common.misc.runcmd(cmd)
 
