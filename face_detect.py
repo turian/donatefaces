@@ -49,7 +49,7 @@ def detectObjects(image):
         bboxes = [(f.x, f.y, f.x+f.width, f.y+f.height) for f in faces]
     return bboxes
 
-def find_faces(framenumber, outdir):
+def find_faces(framenumber, dir):
     pil_img = common.video.grab_frame(sys.argv[1], framenumber=framenumber)
 
     # Convert to OpenCV image from PIL image, on disk
@@ -84,27 +84,36 @@ def find_faces(framenumber, outdir):
 #    pil_img= pil_img.resize((newwidth, newheight), Image.ANTIALIAS) 
 
     # Save to out.png
-    outfile = os.path.join(outdir, "out%04d.jpg" % framenumber)
+    outfile = os.path.join(dir, "out%04d.jpg" % framenumber)
     print >> sys.stderr, "\n\nWriting to %s\n\n" % outfile
     pil_img.save(outfile, "JPEG")
 #   pil_img.save("out%04d.png" % framenumber, "PNG")
 
 def main():
-    outdir = tempfile.mkdtemp()
+    assert len(sys.argv) == 2
+
+    dir = tempfile.mkdtemp()
     try:
-        for i in range(30):
-            find_faces(i, outdir=outdir)
         # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
-        cmd = "ffmpeg -y -r 30 -b 1800 -i %s test1800.mp4" % (os.path.join(outdir, 'out%04d.jpg'))
+        cmd = "ffmpeg -y -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
+        print >> sys.stderr, "Decomposing video to images:", cmd
+        common.misc.runcmd(cmd)
+
+        infiles = []
+        for f in os.listdir(dir): pass
+
+#        for i in range(30):
+#            find_faces(i, dir=dir)
+
+        # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
+        cmd = "ffmpeg -y -r 30 -b 1800 -i %s test1800.mp4" % (os.path.join(dir, 'out%04d.jpg'))
         print >> sys.stderr, "Stitching video together as test1800.mp4"
         print >> sys.stderr, cmd
         common.misc.runcmd(cmd)
 
     finally:
-        print >> sys.stderr, "Removing outdir %s" % outdir
-        import time
-        time.sleep(15)
-        shutil.rmtree(outdir)
+        print >> sys.stderr, "Removing dir %s" % dir
+        shutil.rmtree(dir)
 
 if __name__ == "__main__":
     main()
