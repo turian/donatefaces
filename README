@@ -1,0 +1,14 @@
+donatefaces
+
+    by Joseph Turian
+
+Extract faces from video clips; generate training data for pose-invariant face features.
+
+Python OpenCV face detection code originally based upon code from Robert Martin “Marty” McGuire:
+    http://creatingwithcode.com/howto/face-detection-in-static-images-with-python/
+
+REQUIREMENTS:
+    * sudo apt-get install python-opencv libcv-dev
+        /usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml
+        is contained in libcv-dev so you actually need to install that
+        too for the code to run
