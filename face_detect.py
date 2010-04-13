@@ -38,8 +38,10 @@ def detectObjects(image):
     # faster face detection on real video images the better settings are
     # (scale_factor=1.2, min_neighbors=2, flags=CV_HAAR_DO_CANNY_PRUNING).
     # --- http://www710.univ-lyon1.fr/~bouakaz/OpenCV-0.9.5/docs/ref/OpenCVRef_Experimental.htm#decl_cvHaarDetectObjects
+    # The size box is of the *minimum* detectable object size. Smaller box = more processing time. - http://cell.fixstars.com/opencv/index.php/Facedetect
 #    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.2, 2, CV_HAAR_DO_CANNY_PRUNING, cvSize(50,50))
-    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, 0, cvSize(50,50))
+#    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, 0, cvSize(50,50))
+    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, 0, cvSize(25,25))
 #    faces = cvHaarDetectObjects(grayscale, cascade, storage, scale_factor=1.1, min_neighbors=3, flags=0, cvSize(50,50))
 
 #    print dir(faces)
@@ -86,7 +88,8 @@ def main():
     try:
         # Decompose video into images
         # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
-        cmd = "ffmpeg -y -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
+#        cmd = "ffmpeg -y -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
+        cmd = "ffmpeg -y -t 1 -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
         print >> sys.stderr, "Decomposing video to images:", cmd, "\n"
         common.misc.runcmd(cmd)
 
