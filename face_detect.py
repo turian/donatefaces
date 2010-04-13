@@ -7,11 +7,12 @@
 
 # Usage: python face_detect.py <image_file>
 
-import sys, os, os.path
+import sys, os, os.path, re
 import tempfile
 import shutil
 
-import common.video
+#import common.video
+import common.str
 #import common.misc
 
 from PIL import Image, ImageDraw
@@ -45,27 +46,16 @@ def detectObjects(image):
     bboxes = []
     if faces:
         for f in faces:
-            print("[(%d,%d) -> (%d,%d)]" % (f.x, f.y, f.x+f.width, f.y+f.height))
+            print >> sys.stderr, "\tFace at [(%d,%d) -> (%d,%d)]" % (f.x, f.y, f.x+f.width, f.y+f.height)
         bboxes = [(f.x, f.y, f.x+f.width, f.y+f.height) for f in faces]
     return bboxes
 
-def find_faces(framenumber, dir):
-    pil_img = common.video.grab_frame(sys.argv[1], framenumber=framenumber)
+def find_faces(filename, outfilename):
+    image = cvLoadImage(filename)
 
-    # Convert to OpenCV image from PIL image, on disk
-    tmp = tempfile.NamedTemporaryFile(suffix=".png")
-    pil_img.save(tmp.name)
-    image = cvLoadImage(tmp.name)
-
-#   TODO: Convert to OpenCV image from PIL image, *IN MEMORY*
-#   http://stackoverflow.com/questions/1650568/how-do-i-create-an-opencv-image-from-a-pil-image
-#    cv_img = cv.CreateImageHeader(pil_img.size, cv.IPL_DEPTH_8U, 3)  # RGB image
-#    cv.SetData(cv_img, pil_img.tostring(), pil_img.size[0]*3)
-
-#    print image.imageSize
     faces = detectObjects(image)
 
-    pil_img = Image.open(tmp.name)
+    pil_img = Image.open(filename)
 
     # Draw red boxes around faces
     if faces:
@@ -84,26 +74,35 @@ def find_faces(framenumber, dir):
 #    pil_img= pil_img.resize((newwidth, newheight), Image.ANTIALIAS) 
 
     # Save to out.png
-    outfile = os.path.join(dir, "out%04d.jpg" % framenumber)
-    print >> sys.stderr, "\n\nWriting to %s\n\n" % outfile
-    pil_img.save(outfile, "JPEG")
+    print >> sys.stderr, "Writing to %s" % outfilename
+    pil_img.save(outfilename, "JPEG")
 #   pil_img.save("out%04d.png" % framenumber, "PNG")
 
 def main():
     assert len(sys.argv) == 2
 
     dir = tempfile.mkdtemp()
+    inre = re.compile("in.*.jpg")
     try:
+        # Decompose video into images
         # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
-        cmd = "ffmpeg -y -r 30 -i %s %s 2> /dev/null" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
-        print >> sys.stderr, "Decomposing video to images:", cmd
+        cmd = "ffmpeg -y -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
+        print >> sys.stderr, "Decomposing video to images:", cmd, "\n"
         common.misc.runcmd(cmd)
 
+        # Find all files to process
         infiles = []
-        for f in os.listdir(dir): pass
+        for f in os.listdir(dir):
+            if inre.match(f):
+                infiles.append(f)
+        infiles.sort()
 
-#        for i in range(30):
-#            find_faces(i, dir=dir)
+        for i, f in enumerate(infiles):
+            outf = f.replace("in", "out")
+            f = os.path.join(dir, f)
+            outf = os.path.join(dir, outf)
+            print >> sys.stderr, "Processing %s to %s, image %s" % (f, outf, common.str.percent(i+1, len(infiles)))
+            find_faces(f, outf)
 
         # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
         cmd = "ffmpeg -y -r 30 -b 1800 -i %s test1800.mp4" % (os.path.join(dir, 'out%04d.jpg'))
