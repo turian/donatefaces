@@ -7,6 +7,9 @@
 
 # Usage: python face_detect.py <image_file>
 
+MINFACEWIDTH = 64
+MINFACEHEIGHT = 64
+
 import sys, os, os.path, re
 import tempfile
 import shutil
@@ -40,8 +43,8 @@ def detectObjects(image):
     # --- http://www710.univ-lyon1.fr/~bouakaz/OpenCV-0.9.5/docs/ref/OpenCVRef_Experimental.htm#decl_cvHaarDetectObjects
     # The size box is of the *minimum* detectable object size. Smaller box = more processing time. - http://cell.fixstars.com/opencv/index.php/Facedetect
 #    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.2, 2, CV_HAAR_DO_CANNY_PRUNING, cvSize(50,50))
-#    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, 0, cvSize(50,50))
-    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, 0, cvSize(25,25))
+#    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, 0, cvSize(MINFACEWIDTH,MINFACEHEIGHT))
+    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, 0, cvSize(MINFACEWIDTH,MINFACEHEIGHT))
 #    faces = cvHaarDetectObjects(grayscale, cascade, storage, scale_factor=1.1, min_neighbors=3, flags=0, cvSize(50,50))
 
 #    print dir(faces)
@@ -108,7 +111,7 @@ def main():
             find_faces(f, outf)
 
         # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
-        cmd = "ffmpeg -y -r 30 -b 1800 -i %s test1800.mp4" % (os.path.join(dir, 'out%04d.jpg'))
+        cmd = "ffmpeg -y -r 30 -b 10000 -i %s test1800.mp4" % (os.path.join(dir, 'out%04d.jpg'))
         print >> sys.stderr, "Stitching video together as test1800.mp4"
         print >> sys.stderr, cmd
         common.misc.runcmd(cmd)
