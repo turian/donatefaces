@@ -7,9 +7,12 @@
 
 # Usage: python face_detect.py <image_file>
 
-# Face must be 7.5% of the shot
-MINFACEWIDTH_PERCENT = 0.075
-MINFACEHEIGHT_PERCENT = 0.075
+# Face must be at least 5% of the shot
+MINFACEWIDTH_PERCENT = 0.05
+MINFACEHEIGHT_PERCENT = 0.05
+## Face must be at least 7.5% of the shot
+#MINFACEWIDTH_PERCENT = 0.075
+#MINFACEHEIGHT_PERCENT = 0.075
 
 import sys, os, os.path, re
 import tempfile
@@ -98,8 +101,8 @@ def main():
     try:
         # Decompose video into images
         # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
-        cmd = "ffmpeg -y -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
-#        cmd = "ffmpeg -y -t 10 -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
+        cmd = "ffmpeg -sameq -y -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
+#        cmd = "ffmpeg -sameq -y -t 10 -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
         print >> sys.stderr, "Decomposing video to images:", cmd, "\n"
         common.misc.runcmd(cmd)
         print >> sys.stderr, stats()
@@ -120,7 +123,7 @@ def main():
             find_faces(f, outf)
 
         # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
-        cmd = "ffmpeg -y -r 30 -b 10000 -i %s test1800.mp4" % (os.path.join(dir, 'out%04d.jpg'))
+        cmd = "ffmpeg -y -r 30 -b 10000k -i %s test1800.mp4" % (os.path.join(dir, 'out%04d.jpg'))
         print >> sys.stderr, "Stitching video together as test1800.mp4"
         print >> sys.stderr, cmd
         common.misc.runcmd(cmd)
