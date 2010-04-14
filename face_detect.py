@@ -7,8 +7,9 @@
 
 # Usage: python face_detect.py <image_file>
 
-MINFACEWIDTH = 64
-MINFACEHEIGHT = 64
+# Face must be 7.5% of the shot
+MINFACEWIDTH_PERCENT = 0.075
+MINFACEHEIGHT_PERCENT = 0.075
 
 import sys, os, os.path, re
 import tempfile
@@ -16,6 +17,7 @@ import shutil
 
 #import common.video
 import common.str
+from common.stats import stats
 #import common.misc
 
 from PIL import Image, ImageDraw
@@ -36,15 +38,19 @@ def detectObjects(image):
     cascade = cvLoadHaarClassifierCascade(
         '/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml',
         cvSize(1,1))
+
     # The default parameters (scale_factor=1.1, min_neighbors=3,
     # flags=0) are tuned for accurate yet slow face detection. For
     # faster face detection on real video images the better settings are
     # (scale_factor=1.2, min_neighbors=2, flags=CV_HAAR_DO_CANNY_PRUNING).
     # --- http://www710.univ-lyon1.fr/~bouakaz/OpenCV-0.9.5/docs/ref/OpenCVRef_Experimental.htm#decl_cvHaarDetectObjects
     # The size box is of the *minimum* detectable object size. Smaller box = more processing time. - http://cell.fixstars.com/opencv/index.php/Facedetect
+    minsize = (int(MINFACEWIDTH_PERCENT*image.width+0.5),int(MINFACEHEIGHT_PERCENT*image.height))
+    print >> sys.stderr, "Min size of face: %s" % `minsize`
 #    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.2, 2, CV_HAAR_DO_CANNY_PRUNING, cvSize(50,50))
 #    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, 0, cvSize(MINFACEWIDTH,MINFACEHEIGHT))
-    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, 0, cvSize(MINFACEWIDTH,MINFACEHEIGHT))
+#    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, 0, cvSize(MINFACEWIDTH,MINFACEHEIGHT))
+    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, CV_HAAR_DO_CANNY_PRUNING, cvSize(*minsize))
 #    faces = cvHaarDetectObjects(grayscale, cascade, storage, scale_factor=1.1, min_neighbors=3, flags=0, cvSize(50,50))
 
 #    print dir(faces)
@@ -80,6 +86,7 @@ def find_faces(filename, outfilename):
 
     # Save to out.png
     print >> sys.stderr, "Writing to %s" % outfilename
+    print >> sys.stderr, stats()
     pil_img.save(outfilename, "JPEG")
 #   pil_img.save("out%04d.png" % framenumber, "PNG")
 
@@ -91,10 +98,11 @@ def main():
     try:
         # Decompose video into images
         # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
-#        cmd = "ffmpeg -y -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
-        cmd = "ffmpeg -y -t 1 -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
+        cmd = "ffmpeg -y -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
+#        cmd = "ffmpeg -y -t 10 -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
         print >> sys.stderr, "Decomposing video to images:", cmd, "\n"
         common.misc.runcmd(cmd)
+        print >> sys.stderr, stats()
 
         # Find all files to process
         infiles = []
@@ -108,6 +116,7 @@ def main():
             f = os.path.join(dir, f)
             outf = os.path.join(dir, outf)
             print >> sys.stderr, "Processing %s to %s, image %s" % (f, outf, common.str.percent(i+1, len(infiles)))
+            print >> sys.stderr, stats()
             find_faces(f, outf)
 
         # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
@@ -115,6 +124,7 @@ def main():
         print >> sys.stderr, "Stitching video together as test1800.mp4"
         print >> sys.stderr, cmd
         common.misc.runcmd(cmd)
+        print >> sys.stderr, stats()
 
     finally:
         print >> sys.stderr, "Removing dir %s" % dir
