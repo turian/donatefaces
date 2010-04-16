@@ -1,6 +1,13 @@
 #!/usr/bin/python
+"""
+draw_faces.py
 
-# draw_faces.py
+Load a video and a face file, and output a new video drawing red boxes
+around the faces.
+
+USAGE:
+    python draw_faces.py invideofil facefile outvideofile
+"""
 
 import os
 import os.path
@@ -23,7 +30,8 @@ def draw_faces(faces, infilename, outfilename):
     # Draw red boxes around faces
     if faces:
         draw = ImageDraw.Draw(pil_img)
-        for (x1, y1, x2, y2) in faces:
+        for face in faces:
+            (x1, y1, x2, y2) = face.bbox
             draw.rectangle((x1-1, y1-1, x2+1, y2+1), outline="red")
             draw.rectangle((x1, y1, x2, y2), outline="red")
             draw.rectangle((x1+1, y1+1, x2-1, y2-1), outline="red")
@@ -44,7 +52,7 @@ def draw_faces(faces, infilename, outfilename):
 
 def main(invideofilename, facefilename, outvideofilename):
     faces = Faces("")
-    faces.__dict__ = common.json.loadfile(facefilename)
+    faces.__setstate__(common.json.loadfile(facefilename))
 
     dir = tempfile.mkdtemp()
     try:

@@ -1,12 +1,16 @@
 #!/usr/bin/python
 """
-face_detect.py
+detect_faces.py
 
-Face Detection using OpenCV. Based on sample code from:
-http://python.pastebin.com/m76db1d6b
+Face Detection using OpenCV.
+Print the faces detected as a JSON object, where the "frames" key gives
+a list of frames. Each frame contains a list of face bboxes.
 
 USAGE:
-    python face_detect.py videofil > facefile
+    python detect_faces.py videofil > facefile
+
+Based on sample code from:
+    http://python.pastebin.com/m76db1d6b
 """
 
 # Face must be at least 5% of the shot
@@ -28,7 +32,7 @@ import common.video
 from opencv.cv import cvCreateImage, cvSize, cvCvtColor, cvCreateMemStorage, cvClearMemStorage, cvEqualizeHist, cvLoadHaarClassifierCascade, cvHaarDetectObjects, CV_HAAR_DO_CANNY_PRUNING, CV_BGR2GRAY
 from opencv.highgui import cvLoadImage
 
-from faces import Faces
+from faces import Face, Faces
 
 def detect_faces(imagefilename):
     """Converts an image to grayscale and prints the locations of any
@@ -64,7 +68,7 @@ def detect_faces(imagefilename):
     if faces:
         for f in faces:
             print >> sys.stderr, "\tFace at [(%d,%d) -> (%d,%d)]" % (f.x, f.y, f.x+f.width, f.y+f.height)
-        bboxes = [(f.x, f.y, f.x+f.width, f.y+f.height) for f in faces]
+        bboxes = [Face(f.x, f.y, f.x+f.width, f.y+f.height) for f in faces]
     return bboxes
 
 def main(videofilename):
@@ -74,7 +78,7 @@ def main(videofilename):
         print >> sys.stderr, "Processing %s, image %s" % (f, common.str.percent(i+1, totframes))
         print >> sys.stderr, stats()
         faces.add_frame(i, detect_faces(f))
-    print common.json.dumps(faces.__dict__)
+    print common.json.dumps(faces.__getstate__())
 
 if __name__ == "__main__":
     assert len(sys.argv) == 2
