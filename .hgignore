@@ -1,0 +1,5 @@
+syntax: glob
+*.faces
+*.flv
+*.mp4
+*.pyc

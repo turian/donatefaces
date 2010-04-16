@@ -1,11 +1,13 @@
 #!/usr/bin/python
+"""
+face_detect.py
 
-# face_detect.py
+Face Detection using OpenCV. Based on sample code from:
+http://python.pastebin.com/m76db1d6b
 
-# Face Detection using OpenCV. Based on sample code from:
-# http://python.pastebin.com/m76db1d6b
-
-# Usage: python face_detect.py <image_file>
+USAGE:
+    python face_detect.py videofil > facefile
+"""
 
 # Face must be at least 5% of the shot
 MINFACEWIDTH_PERCENT = 0.05
@@ -14,23 +16,28 @@ MINFACEHEIGHT_PERCENT = 0.05
 #MINFACEWIDTH_PERCENT = 0.075
 #MINFACEHEIGHT_PERCENT = 0.075
 
-import sys, os, os.path, re
-import tempfile
+import os
+import os.path
+import re
 import shutil
+import sys
+import tempfile
 
 #import common.video
 import common.str
 from common.stats import stats
-#import common.misc
-
-from PIL import Image, ImageDraw
+import common.misc
+import common.json
 
 from opencv.cv import *
 from opencv.highgui import *
 
-def detectObjects(image):
+from faces import Faces
+
+def find_faces(imagefilename):
     """Converts an image to grayscale and prints the locations of any
          faces found"""
+    image = cvLoadImage(imagefilename)
 
     grayscale = cvCreateImage(cvSize(image.width, image.height), 8, 1)
     cvCvtColor(image, grayscale, CV_BGR2GRAY)
@@ -64,11 +71,7 @@ def detectObjects(image):
         bboxes = [(f.x, f.y, f.x+f.width, f.y+f.height) for f in faces]
     return bboxes
 
-def find_faces(filename, outfilename):
-    image = cvLoadImage(filename)
-
-    faces = detectObjects(image)
-
+def draw_faces(outfilename):
     pil_img = Image.open(filename)
 
     # Draw red boxes around faces
@@ -93,16 +96,16 @@ def find_faces(filename, outfilename):
     pil_img.save(outfilename, "JPEG")
 #   pil_img.save("out%04d.png" % framenumber, "PNG")
 
-def main():
-    assert len(sys.argv) == 2
+def main(videofilename):
+    faces = Faces(videofilename)
 
     dir = tempfile.mkdtemp()
     inre = re.compile("in.*.jpg")
     try:
         # Decompose video into images
         # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
-        cmd = "ffmpeg -sameq -y -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
-#        cmd = "ffmpeg -sameq -y -t 10 -r 30 -i %s %s" % (sys.argv[1], os.path.join(dir, 'in%04d.jpg'))
+        cmd = "ffmpeg -sameq -y -r 30 -i %s %s" % (videofilename, os.path.join(dir, 'in%04d.jpg'))
+#        cmd = "ffmpeg -sameq -y -vframes 50 -r 30 -i %s %s" % (videofilename, os.path.join(dir, 'in%04d.jpg'))
         print >> sys.stderr, "Decomposing video to images:", cmd, "\n"
         common.misc.runcmd(cmd)
         print >> sys.stderr, stats()
@@ -115,23 +118,31 @@ def main():
         infiles.sort()
 
         for i, f in enumerate(infiles):
-            outf = f.replace("in", "out")
             f = os.path.join(dir, f)
-            outf = os.path.join(dir, outf)
-            print >> sys.stderr, "Processing %s to %s, image %s" % (f, outf, common.str.percent(i+1, len(infiles)))
+            print >> sys.stderr, "Processing %s, image %s" % (f, common.str.percent(i+1, len(infiles)))
             print >> sys.stderr, stats()
-            find_faces(f, outf)
+            faces.add_frame(i, find_faces(f))
 
-        # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
-        cmd = "ffmpeg -y -r 30 -b 10000k -i %s test1800.mp4" % (os.path.join(dir, 'out%04d.jpg'))
-        print >> sys.stderr, "Stitching video together as test1800.mp4"
-        print >> sys.stderr, cmd
-        common.misc.runcmd(cmd)
-        print >> sys.stderr, stats()
+#            outf = f.replace("in", "out")
+#            outf = os.path.join(dir, outf)
+#            print >> sys.stderr, "Processing %s to %s, image %s" % (f, outf, common.str.percent(i+1, len(infiles)))
+#            print >> sys.stderr, stats()
+
+#        # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
+#        cmd = "ffmpeg -y -r 30 -b 10000k -i %s test1800.mp4" % (os.path.join(dir, 'out%04d.jpg'))
+#        print >> sys.stderr, "Stitching video together as test1800.mp4"
+#        print >> sys.stderr, cmd
+#        common.misc.runcmd(cmd)
+#        print >> sys.stderr, stats()
+
+        print common.json.dumps(faces.__dict__)
 
     finally:
         print >> sys.stderr, "Removing dir %s" % dir
         shutil.rmtree(dir)
 
 if __name__ == "__main__":
-    main()
+    assert len(sys.argv) == 2
+    videofilename = sys.argv[1]
+
+    main(videofilename)

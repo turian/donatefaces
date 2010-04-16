@@ -4,6 +4,12 @@ donatefaces
 
 Extract faces from video clips; generate training data for pose-invariant face features.
 
+USAGE:
+    youtube-dl 'http://www.youtube.com/watch?v=2QlGj_GPPi4'
+    ./face_detect.py 2QlGj_GPPi4.flv > 2QlGj_GPPi4.flv.faces
+    ./draw_faces.py 2QlGj_GPPi4.flv 2QlGj_GPPi4.flv.faces 2QlGj_GPPi4.faces.mp4
+
+
 REQUIREMENTS:
     * OpenCV (>=2?) with *old* style (Swig) Python bindings
         * If you are under Ubuntu, this is easy to install:
@@ -19,6 +25,11 @@ REQUIREMENTS:
         * Note: The new style Python bindings are incomplete, unfortunately:
             http://stackoverflow.com/questions/2195441/opencv-2-0-and-python
             (See comment by ezod)
+    * My Python common library:
+        http://github.com/turian/common
+    * youtube-dl:
+        http://bitbucket.org/rg3/youtube-dl/
+        
 
 CREDITS:
     * Python OpenCV face detection code originally based upon code from
@@ -31,6 +42,8 @@ DEPRECATED
 
     * pyffmpeg
         http://code.google.com/p/pyffmpeg/issues/detail?id=9#c5
+
+        sudo pip install -e git://github.com/tranx/pyffmpeg.git#egg=pyffmpeg
 
     * PyMedia
         For converting a video into images. I use version 1.3.7.3.
