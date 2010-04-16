@@ -5,10 +5,20 @@ donatefaces
 Extract faces from video clips; generate training data for pose-invariant face features.
 
 REQUIREMENTS:
-    * sudo apt-get install python-opencv libcv-dev
-        /usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml
-        is contained in libcv-dev so you actually need to install that
-        too for the code to run
+    * OpenCV (>=2?) with *old* style (Swig) Python bindings
+        * If you are under Ubuntu, this is easy to install:
+            sudo apt-get install python-opencv libcv-dev
+
+            Note:
+            /usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml
+            is contained in libcv-dev so you actually need to install
+            that too for the code to run
+        * If you are compiling the code from scratch, make sure you use option:
+                -D BUILD_SWIG_PYTHON_SUPPORT=ON
+            when running 'cmake' to get the old style bindings.
+        * Note: The new style Python bindings are incomplete, unfortunately:
+            http://stackoverflow.com/questions/2195441/opencv-2-0-and-python
+            (See comment by ezod)
 
 CREDITS:
     * Python OpenCV face detection code originally based upon code from
