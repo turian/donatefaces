@@ -48,17 +48,19 @@ def main(invideofilename, facefilename, outvideofilename):
 
     dir = tempfile.mkdtemp()
     try:
-        for i, f, totframes in common.video.frames(invideofilename):
-            outf = f.replace("in", "out")
+        for i, f, totframes in common.video.frames(invideofilename, maxframes=len(faces.frames)):
+            outf = os.path.join(dir, "out%05d.jpg" % i)
             print >> sys.stderr, "Processing %s to %s, image %s" % (f, outf, common.str.percent(i+1, totframes))
             print >> sys.stderr, stats()
 
             draw_faces(faces.frames[i], f, outf)
 
         # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
-        cmd = "ffmpeg -y -r 30 -b 10000k -i %s %s" % (os.path.join(dir, 'out%04d.jpg'), outvideofilename)
+        cmd = "ffmpeg -y -r 30 -b 10000k -i %s %s" % (os.path.join(dir, 'out%05d.jpg'), outvideofilename)
         print >> sys.stderr, "Stitching video together as test1800.mp4"
         print >> sys.stderr, cmd
+#        import time
+#        time.sleep(30)
         common.misc.runcmd(cmd)
         print >> sys.stderr, stats()
 
