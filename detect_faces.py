@@ -34,7 +34,7 @@ from opencv.highgui import *
 
 from faces import Faces
 
-def find_faces(imagefilename):
+def detect_faces(imagefilename):
     """Converts an image to grayscale and prints the locations of any
          faces found"""
     image = cvLoadImage(imagefilename)
@@ -121,7 +121,7 @@ def main(videofilename):
             f = os.path.join(dir, f)
             print >> sys.stderr, "Processing %s, image %s" % (f, common.str.percent(i+1, len(infiles)))
             print >> sys.stderr, stats()
-            faces.add_frame(i, find_faces(f))
+            faces.add_frame(i, detect_faces(f))
 
 #            outf = f.replace("in", "out")
 #            outf = os.path.join(dir, outf)
