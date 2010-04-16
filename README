@@ -29,6 +29,10 @@ REQUIREMENTS:
         http://github.com/turian/common
     * youtube-dl:
         http://bitbucket.org/rg3/youtube-dl/
+
+IMPLICIT REQUIREMENTS (things required by REQUIREMENTS):
+    * ffmpeg
+    * simplejson
         
 
 CREDITS:

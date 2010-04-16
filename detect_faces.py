@@ -69,10 +69,12 @@ def detect_faces(imagefilename):
 
 def main(videofilename):
     faces = Faces(videofilename)
-    for i, f, totframes in common.video.frames(videofilename, maxframes=10):
+    for i, f, totframes in common.video.frames(videofilename):
+#    for i, f, totframes in common.video.frames(videofilename, maxframes=10):
         print >> sys.stderr, "Processing %s, image %s" % (f, common.str.percent(i+1, totframes))
         print >> sys.stderr, stats()
         faces.add_frame(i, detect_faces(f))
+    print common.json.dumps(faces.__dict__)
 
 if __name__ == "__main__":
     assert len(sys.argv) == 2

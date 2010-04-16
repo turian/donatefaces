@@ -13,6 +13,7 @@ from faces import Faces
 
 import common.json
 from common.stats import stats
+import common.video
 
 from PIL import Image, ImageDraw
 
@@ -46,27 +47,10 @@ def main(invideofilename, facefilename, outvideofilename):
     faces.__dict__ = common.json.loadfile(facefilename)
 
     dir = tempfile.mkdtemp()
-    inre = re.compile("in.*.jpg")
     try:
-        # Decompose video into images
-        # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
-        cmd = "ffmpeg -sameq -y -vframes %d -r 30 -i %s %s" % (len(faces.frames), invideofilename, os.path.join(dir, 'in%04d.jpg'))
-        print >> sys.stderr, "Decomposing video to images:", cmd, "\n"
-        common.misc.runcmd(cmd)
-        print >> sys.stderr, stats()
-
-        # Find all files to process
-        infiles = []
-        for f in os.listdir(dir):
-            if inre.match(f):
-                infiles.append(f)
-        infiles.sort()
-
-        for i, f in enumerate(infiles):
+        for i, f, totframes in common.video.frames(invideofilename):
             outf = f.replace("in", "out")
-            f = os.path.join(dir, f)
-            outf = os.path.join(dir, outf)
-            print >> sys.stderr, "Processing %s to %s, image %s" % (f, outf, common.str.percent(i+1, len(infiles)))
+            print >> sys.stderr, "Processing %s to %s, image %s" % (f, outf, common.str.percent(i+1, totframes))
             print >> sys.stderr, stats()
 
             draw_faces(faces.frames[i], f, outf)
