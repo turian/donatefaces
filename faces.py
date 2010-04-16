@@ -40,6 +40,12 @@ class Faces:
         self.filename = filename
         self.frames = []
 
+    def set_dimensions(self, width, height):
+        if "width" in self.__dict__: assert self.width == width
+        else: self.width = width
+        if "height" in self.__dict__: assert self.height == height
+        else: self.height = height
+
     def add_frame(self, framenumber, facelist):
         assert len(self.frames) == framenumber
         for face in facelist: assert face.is_face()

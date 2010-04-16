@@ -14,13 +14,17 @@ from faces import Faces
 
 import common.json
 
+import numpy
+
 def main(facefilename):
     faces = Faces("")
     faces.__setstate__(common.json.loadfile(facefilename))
 
     for i, f in enumerate(faces.frames):
         for face in f:
-            print face
+            (x1, y1, x2, y2) = face.bbox
+
+            print face.bbox
 
 
 if __name__ == "__main__":

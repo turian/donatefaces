@@ -34,11 +34,9 @@ from opencv.highgui import cvLoadImage
 
 from faces import Face, Faces
 
-def detect_faces(imagefilename):
+def detect_faces(image):
     """Converts an image to grayscale and prints the locations of any
          faces found"""
-    image = cvLoadImage(imagefilename)
-
     grayscale = cvCreateImage(cvSize(image.width, image.height), 8, 1)
     cvCvtColor(image, grayscale, CV_BGR2GRAY)
 
@@ -77,7 +75,9 @@ def main(videofilename):
 #    for i, f, totframes in common.video.frames(videofilename, maxframes=10):
         print >> sys.stderr, "Processing %s, image %s" % (f, common.str.percent(i+1, totframes))
         print >> sys.stderr, stats()
-        faces.add_frame(i, detect_faces(f))
+        image = cvLoadImage(f)
+        faces.set_dimensions(image.width, image.height)
+        faces.add_frame(i, detect_faces(image))
     print common.json.dumps(faces.__getstate__())
 
 if __name__ == "__main__":
