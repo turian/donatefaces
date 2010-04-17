@@ -9,6 +9,10 @@ USAGE:
     ./detect_faces.py 2QlGj_GPPi4.flv > 2QlGj_GPPi4.flv.faces
     ./draw_faces.py 2QlGj_GPPi4.flv 2QlGj_GPPi4.flv.faces 2QlGj_GPPi4.faces.mp4
 
+    ./smooth_faces.py 2QlGj_GPPi4.flv.faces > 2QlGj_GPPi4.flv.facechains
+    ./draw_facechains.py 2QlGj_GPPi4.flv 2QlGj_GPPi4.flv.facechains 2QlGj_GPPi4.facechains.mp4
+
+
 
 REQUIREMENTS:
     * OpenCV (>=2?) with *old* style (Swig) Python bindings

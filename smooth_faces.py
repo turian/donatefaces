@@ -17,7 +17,6 @@ import sys
 from faces import Faces, FaceChain, FaceChains
 
 import common.json
-import common.video
 
 import numpy
 
@@ -33,7 +32,7 @@ def facenumpy(face, width, height):
     y2 /= 1. * height
     return numpy.array((x1, y1, x2, y2))
 
-def main(facefilename, videofilename):
+def main(facefilename):
     faces = Faces("")
     faces.__setstate__(common.json.loadfile(facefilename))
 
@@ -45,6 +44,8 @@ def main(facefilename, videofilename):
     for i, frame in enumerate(faces.frames):
         for face in frame:
             f1 = facenumpy(face, faces.width, faces.height)
+
+            if i+1 >= len(faces.frames): continue
 
             if len(faces.frames[i+1]) == 0: continue
 
@@ -98,50 +99,8 @@ def main(facefilename, videofilename):
     facechains.chains = chains
     print common.json.dumps(facechains.__getstate__())
 
-#    faces.chains = chains
-#    print faces.__getstate__()
-#    print common.json.dumps(faces.__getstate__())
-
-#    for i, fil, totframes in common.video.frames(videofilename, maxframes=len(faces.frames)):
-#            print closestnextfacediff, closestprevfacediff, face, closestnextface
-#
-#            goodnextfaces = []
-#            if len(faces.frames) > i+1:
-#                for nextface in faces.frames[i+1]:
-#                    f2 = facenumpy(nextface, faces.width, faces.height)
-#
-#                    diff = numpy.sum(numpy.square(f1-f2))
-#
-#                    if diff <= MAXSQRERR:
-#                        goodnextfaces.append(nextface)
-#
-#                    # Show images that just miss this threshold
-#                    if diff > MAXSQRERR and diff < MAXSQRERR*1.1 and showedcnt < 25:
-#                        from PIL import Image, ImageDraw
-#                        pil_img = Image.open(fil)
-#                        draw = ImageDraw.Draw(pil_img)
-#                        face.draw(draw)
-#                        nextface.draw(draw, color="green")
-##                        pil_img.show()
-#                        print diff, f1, f2
-#                        showedcnt += 1
-#
-#            if len(goodnextfaces) > 1:
-#                from PIL import Image, ImageDraw
-#                pil_img = Image.open(fil)
-#                draw = ImageDraw.Draw(pil_img)
-#                face.draw(draw)
-#                for f in goodnextfaces:
-#                    f.draw(draw, color="green")
-#                pil_img.show()
-#                showedcnt += 1
-
-
-
 if __name__ == "__main__":
-#    assert len(sys.argv) == 2
-    assert len(sys.argv) == 3
+    assert len(sys.argv) == 2
     facefilename = sys.argv[1]
-    videofilename = sys.argv[2]
 
-    main(facefilename, videofilename)
+    main(facefilename)
