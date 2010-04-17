@@ -78,6 +78,9 @@ def main(videofilename):
         image = cvLoadImage(f)
         faces.set_dimensions(image.width, image.height)
         faces.add_frame(i, detect_faces(image))
+
+        if i % 100 == 0 and i != 0:
+            print >> sys.stderr, common.json.dumps(faces.__getstate__())
     print common.json.dumps(faces.__getstate__())
 
 if __name__ == "__main__":

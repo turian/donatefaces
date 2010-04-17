@@ -31,10 +31,7 @@ def draw_faces(faces, infilename, outfilename):
     if faces:
         draw = ImageDraw.Draw(pil_img)
         for face in faces:
-            (x1, y1, x2, y2) = face.bbox
-            draw.rectangle((x1-1, y1-1, x2+1, y2+1), outline="red")
-            draw.rectangle((x1, y1, x2, y2), outline="red")
-            draw.rectangle((x1+1, y1+1, x2-1, y2-1), outline="red")
+            face.draw(draw)
         del draw
 
 #    # REMOVEME: Scale image to height of 320

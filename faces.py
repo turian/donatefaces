@@ -21,6 +21,15 @@ class Face:
     @property
     def bbox(self): return (self.x1, self.y1, self.x2, self.y2)
 
+    def draw(self, img, color="red"):
+        """
+        Draw the face on a PIL ImageDraw object.
+        """
+        (x1, y1, x2, y2) = self.bbox
+        img.rectangle((x1-1, y1-1, x2+1, y2+1), outline=color)
+        img.rectangle((x1, y1, x2, y2), outline=color)
+        img.rectangle((x1+1, y1+1, x2-1, y2-1), outline=color)
+
     def __getstate__(self):
         return self.__dict__
 

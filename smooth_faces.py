@@ -40,20 +40,37 @@ def main(facefilename, videofilename):
         for face in frame:
             f1 = facenumpy(face, faces.width, faces.height)
 
+            goodnextfaces = []
             if len(faces.frames) > i+1:
                 for nextface in faces.frames[i+1]:
                     f2 = facenumpy(nextface, faces.width, faces.height)
 
                     diff = numpy.sum(numpy.square(f1-f2))
+
+                    if diff <= MAXSQRERR:
+                        goodnextfaces.append(nextface)
+
+                    # Show images that just miss this threshold
                     if diff > MAXSQRERR and diff < MAXSQRERR*1.1 and showedcnt < 25:
                         from PIL import Image, ImageDraw
                         pil_img = Image.open(fil)
                         draw = ImageDraw.Draw(pil_img)
                         face.draw(draw)
                         nextface.draw(draw, color="green")
-                        pil_img.show()
+#                        pil_img.show()
                         print diff, f1, f2
                         showedcnt += 1
+
+            if len(goodnextfaces) > 1:
+                from PIL import Image, ImageDraw
+                pil_img = Image.open(fil)
+                draw = ImageDraw.Draw(pil_img)
+                face.draw(draw)
+                for f in goodnextfaces:
+                    f.draw(draw, color="green")
+                pil_img.show()
+                showedcnt += 1
+
 
 
 if __name__ == "__main__":
