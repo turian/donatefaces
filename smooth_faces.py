@@ -14,7 +14,7 @@ TODO:
 
 import sys
 
-from faces import Faces
+from faces import Faces, FaceChain, FaceChains
 
 import common.json
 import common.video
@@ -90,12 +90,17 @@ def main(facefilename, videofilename):
                 i, face = nextlinks[(i, face)]
                 chain.append((i, face))
                 assert chain[-1][0] == chain[-2][0]+1
-            chains.append(chain)
+            chains.append(FaceChain(chain))
     chains.sort()
 
-    faces.chains = chains
-    print faces.__getstate__()
-    print common.json.dumps(faces.__getstate__())
+    facechains = FaceChains()
+    facechains.copy_from_faces(faces)
+    facechains.chains = chains
+    print facechains.__getstate__()
+
+#    faces.chains = chains
+#    print faces.__getstate__()
+#    print common.json.dumps(faces.__getstate__())
 
 #    for i, fil, totframes in common.video.frames(videofilename, maxframes=len(faces.frames)):
 #            print closestnextfacediff, closestprevfacediff, face, closestnextface

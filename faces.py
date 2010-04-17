@@ -86,43 +86,65 @@ class Faces:
             newframes.append(newfaces)
         self.frames = newframes
 
-#class FaceChain:
-#    """
-#    Chain of one single face.
-#    self.data = a list of (framenumber, Face) tuples, where framenumber is increasing
-#    """
-#
-#class FaceChains:
-#    """
-#    Class to store face tracking data.
-#    Unless Faces, which stores each frame in isolation, we have a member
-#    variable called "chains". "chains" is a list of type Chain.
-#    """
-#
-#    def __init__(self, filename):
-#        """
-#        TODO: Store video information: filename, format information, file size, sha1sum of file, width+height, #frames, etc.
-#        TODO: Store information about which face detection algorithm was used, with which hyperparams
-#        """
-#        self.filename = filename
-#        self.frames = []
+class FaceChain:
+    """
+    Chain of one single face.
+    self.data = a list of (framenumber, Face) tuples, where framenumber is increasing
+    """
+
+    def __init__(self, data):
+        self.data = data
+        self.sanity_check()
+
+    def sanity_check(self):
+        """
+        Make sure the chain frame numbers are increasing incrementally.
+        """
+        for j, (i, face) in enumerate(self.data):
+            if len(self.data) > j+1:
+                assert self.data[j+1][0] == self.data[j][0]+1
+
+    def __cmp__(self, other):
+        return cmp(self.data, other.data)
+
+    def __repr__(self):
+        return `self.data`
+
+    def __getstate__(self):
+        result = self.__dict__.copy()
+        result["data"] = [(i, face.__getstate__()) for i, face in result["data"]]
+        return result
+
+class FaceChains:
+    """
+    Class to store face tracking data.
+    Unless Faces, which stores each frame in isolation, we have a member
+    variable called "chains". "chains" is a list of type Chain.
+    """
+
+    def __init__(self):
+        self.chains = []
+
+    def copy_from_faces(self, faces):
+        """
+        Copy data from a faces object.
+        """
+        dict = faces.__dict__.copy()
+        del dict["frames"]
+        self.__dict__.update(dict)
+
 #
 #    def set_dimensions(self, width, height):
 #        if "width" in self.__dict__: assert self.width == width
 #        else: self.width = width
 #        if "height" in self.__dict__: assert self.height == height
 #        else: self.height = height
-#
-#    def add_frame(self, framenumber, facelist):
-#        assert len(self.frames) == framenumber
-#        for face in facelist: assert face.is_face()
-#        self.frames.append(facelist)
-#
-#    def __getstate__(self):
-#        result = self.__dict__.copy()
-#        result["frames"] = [[face.__getstate__() for face in frame] for frame in result["frames"]]
-#        return result
-#
+
+    def __getstate__(self):
+        result = self.__dict__.copy()
+        result["chains"] = [chain.__getstate__() for chain in result["chains"]]
+        return result
+
 #    def __setstate__(self, dict):
 #        self.__dict__ = dict
 #        newframes = []
