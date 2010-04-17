@@ -71,8 +71,8 @@ def detect_faces(image):
 
 def main(videofilename):
     faces = Faces(videofilename)
-    for i, f, totframes in common.video.frames(videofilename):
-#    for i, f, totframes in common.video.frames(videofilename, maxframes=10):
+#    for i, f, totframes in common.video.frames(videofilename):
+    for i, f, totframes in common.video.frames(videofilename, maxframes=1000):
         print >> sys.stderr, "Processing %s, image %s" % (f, common.str.percent(i+1, totframes))
         print >> sys.stderr, stats()
         image = cvLoadImage(f)
