@@ -101,6 +101,7 @@ class FaceChain:
         Make sure the chain frame numbers are increasing incrementally.
         """
         for j, (i, face) in enumerate(self.data):
+            assert face.is_face()
             if len(self.data) > j+1:
                 assert self.data[j+1][0] == self.data[j][0]+1
 
@@ -109,6 +110,9 @@ class FaceChain:
 
     def __repr__(self):
         return `self.data`
+
+    def __hash__(self):
+        return hash(self.__repr__())
 
     def __getstate__(self):
         result = self.__dict__.copy()
@@ -145,17 +149,18 @@ class FaceChains:
         result["chains"] = [chain.__getstate__() for chain in result["chains"]]
         return result
 
-#    def __setstate__(self, dict):
-#        self.__dict__ = dict
-#        newframes = []
-#        for frame in dict["frames"]:
-#            newfaces = []
-#            for face in frame:
-#                newface = Face(0,0,10,10)
-#                newface.__setstate__(face)
-#                newfaces.append(newface)
-#            newframes.append(newfaces)
-#        self.frames = newframes
+    def __setstate__(self, dict):
+        self.__dict__ = dict
+        import sys
+        chains = []
+        for c in dict["chains"]:
+            chain = []
+            for i, face in c["data"]:
+                f = Face(0,0,1,1)
+                f.__setstate__(face)
+                chain.append((i, f))
+            chains.append(FaceChain(chain))
+        self.chains = chains
 
 if __name__ == "__main__":
     f = Faces("")

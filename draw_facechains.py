@@ -28,11 +28,11 @@ def draw_faces(faces, infilename, outfilename):
     pil_img = Image.open(infilename)
 
     # Draw red boxes around faces
-    if faces:
-        draw = ImageDraw.Draw(pil_img)
-        for face in faces:
-            face.draw(draw)
-        del draw
+    draw = ImageDraw.Draw(pil_img)
+    for face, color in faces:
+#        print face, color
+        face.draw(draw, color=color)
+    del draw
 
 #    # REMOVEME: Scale image to height of 320
 #    newwidth = 320
@@ -48,23 +48,29 @@ def draw_faces(faces, infilename, outfilename):
 #   pil_img.save("out%04d.png" % framenumber, "PNG")
 
 def main(invideofilename, facechainfilename, outvideofilename):
-    faces = FaceChains("")
+    faces = FaceChains()
     faces.__setstate__(common.json.loadfile(facechainfilename))
 
     dir = tempfile.mkdtemp()
     try:
-        frames = {}
+        from collections import defaultdict
+        frames = defaultdict(list)
+        maxframe = 0
         for chain in faces.chains:
+#            print chain
             color = ["red", "yellow", "green", "blue", "purple", "orange"][chain.__hash__() % 6]
-            for i, face in chain:
-                pass
+            for i, face in chain.data:
+                frames[i].append((face, color))
+                if i > maxframe: maxframe = i
+#        print >> sys.stderr, frames
 
-        for i, f, totframes in common.video.frames(invideofilename, maxframes=len(faces.frames)):
+
+        for i, f, totframes in common.video.frames(invideofilename, maxframes=maxframe):
             outf = os.path.join(dir, "out%05d.jpg" % i)
             print >> sys.stderr, "Processing %s to %s, image %s" % (f, outf, common.str.percent(i+1, totframes))
             print >> sys.stderr, stats()
 
-            draw_faces(faces.frames[i], f, outf)
+            draw_faces(frames[i], f, outf)
 
         # I learned this command from here: http://electron.mit.edu/~gsteele/ffmpeg/
         cmd = "ffmpeg -y -r 30 -b 10000k -i %s %s" % (os.path.join(dir, 'out%05d.jpg'), outvideofilename)

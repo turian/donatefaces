@@ -96,7 +96,7 @@ def main(facefilename, videofilename):
     facechains = FaceChains()
     facechains.copy_from_faces(faces)
     facechains.chains = chains
-    print facechains.__getstate__()
+    print common.json.dumps(facechains.__getstate__())
 
 #    faces.chains = chains
 #    print faces.__getstate__()
