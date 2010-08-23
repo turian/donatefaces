@@ -43,9 +43,6 @@ def detect_faces(image):
     storage = cvCreateMemStorage(0)
     cvClearMemStorage(storage)
     cvEqualizeHist(grayscale, grayscale)
-    cascade = cvLoadHaarClassifierCascade(
-        '/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml',
-        cvSize(1,1))
 
     # The default parameters (scale_factor=1.1, min_neighbors=3,
     # flags=0) are tuned for accurate yet slow face detection. For
@@ -55,11 +52,17 @@ def detect_faces(image):
     # The size box is of the *minimum* detectable object size. Smaller box = more processing time. - http://cell.fixstars.com/opencv/index.php/Facedetect
     minsize = (int(MINFACEWIDTH_PERCENT*image.width+0.5),int(MINFACEHEIGHT_PERCENT*image.height))
     print >> sys.stderr, "Min size of face: %s" % `minsize`
-#    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.2, 2, CV_HAAR_DO_CANNY_PRUNING, cvSize(50,50))
-#    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, 0, cvSize(MINFACEWIDTH,MINFACEHEIGHT))
-#    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, 0, cvSize(MINFACEWIDTH,MINFACEHEIGHT))
-    faces = cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, CV_HAAR_DO_CANNY_PRUNING, cvSize(*minsize))
-#    faces = cvHaarDetectObjects(grayscale, cascade, storage, scale_factor=1.1, min_neighbors=3, flags=0, cvSize(50,50))
+
+    faces = []
+    for cascadefile in ['/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml']:
+#    for cascadefile in ['/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml', '/usr/share/opencv/haarcascades/haarcascade_profileface.xml']:
+        cascade = cvLoadHaarClassifierCascade(cascadefile, cvSize(1,1))
+#        faces += cvHaarDetectObjects(grayscale, cascade, storage, 1.2, 2, CV_HAAR_DO_CANNY_PRUNING, cvSize(50,50))
+#        faces += cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, 0, cvSize(MINFACEWIDTH,MINFACEHEIGHT))
+#        faces += cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, 0, cvSize(MINFACEWIDTH,MINFACEHEIGHT))
+#        faces += cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 3, CV_HAAR_DO_CANNY_PRUNING, cvSize(*minsize))
+        faces += cvHaarDetectObjects(grayscale, cascade, storage, 1.1, 4, CV_HAAR_DO_CANNY_PRUNING, cvSize(*minsize))
+#        faces += cvHaarDetectObjects(grayscale, cascade, storage, scale_factor=1.1, min_neighbors=3, flags=0, cvSize(50,50))
 
 #    print dir(faces)
     bboxes = []
@@ -71,8 +74,8 @@ def detect_faces(image):
 
 def main(videofilename):
     faces = Faces(videofilename)
-#    for i, f, totframes in common.video.frames(videofilename):
-    for i, f, totframes in common.video.frames(videofilename, maxframes=1000):
+    for i, f, totframes in common.video.frames(videofilename):
+#    for i, f, totframes in common.video.frames(videofilename, maxframes=1000):
         print >> sys.stderr, "Processing %s, image %s" % (f, common.str.percent(i+1, totframes))
         print >> sys.stderr, stats()
         image = cvLoadImage(f)

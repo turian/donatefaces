@@ -3,7 +3,9 @@
 Module for storing face tracking data.
 """
 
+import copy
 import numpy
+import math
 
 class Face:
     """
@@ -284,6 +286,57 @@ class FaceChains:
             if len(chain.data) >= MINLENGTH:
                 newchains.append(chain)
         self.chains = newchains
+
+    def gaussiansmoothchains(self, VARIANCE=2., WIDTH=10):
+        origtotalfaces = self.totalfaces
+
+        weight = {}
+        i = 0
+        # Compute the strength of the Gaussian until it is 100 times weaker than the mean of the Gaussian
+        while 1:
+            weight[i] = math.exp(- i*i / (2 * VARIANCE * VARIANCE))
+            weight[-i] = math.exp(- i*i / (2 * VARIANCE * VARIANCE))
+            if weight[0] / weight[i] > 100: break
+            i += 1
+#        print weight
+
+        newchains = []
+        for chain in self.chains:
+            newchain = copy.deepcopy(chain)
+            for i, face in enumerate(chain.data):
+                gaussiantotal = 0
+                x1, y1, x2, y2 = 0,0,0,0
+                for j in weight:
+                    idx = i+j
+                    if idx >= 0 and idx < len(chain.data):
+                        dx1, dy1, dx2, dy2 = chain.data[idx][1].bbox
+                        x1 += dx1 * weight[j]
+                        y1 += dy1 * weight[j]
+                        x2 += dx2 * weight[j]
+                        y2 += dy2 * weight[j]
+                        gaussiantotal += weight[j]
+#                        print " ", idx, chain.data[idx][1].bbox, weight[j]
+                assert gaussiantotal > 0
+                x1 /= gaussiantotal
+                y1 /= gaussiantotal
+                x2 /= gaussiantotal
+                y2 /= gaussiantotal
+                x1 = int(x1 + 0.5)
+                y1 = int(y1 + 0.5)
+                x2 = int(x2 + 0.5)
+                y2 = int(y2 + 0.5)
+                assert x1 >= 0 and x1 < self.width
+                assert x2 >= 0 and x2 < self.width
+                assert y1 >= 0 and y1 < self.height
+                assert y2 >= 0 and y2 < self.height
+#                print x1, y1, x2, y2
+                assert len(newchain.data[i]) == 2
+                newchain.data[i] = (newchain.data[i][0], Face(x1, y1, x2, y2))
+            newchains.append(newchain)
+        self.chains = newchains
+
+#        print origtotalfaces, self.totalfaces
+        assert origtotalfaces == self.totalfaces
 
     def __getstate__(self):
         result = self.__dict__.copy()

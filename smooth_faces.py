@@ -39,6 +39,8 @@ def main(facefilename):
 
     facechains.join_nearby(1)
     facechains.deleteshortchains()
+    facechains.gaussiansmoothchains()
+    facechains.gaussiansmoothchains()
 
     print common.json.dumps(facechains.__getstate__())
 
