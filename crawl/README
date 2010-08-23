@@ -1,0 +1,5 @@
+Install w3mir and then run:
+    w3mir -l -f -r -drr 'http://www.youtube.com/' | grep 'http://www.youtube.com/watch?v=' >> allurls
+    cat allurls | perl -ne 's/\&.*//; print' | sort | uniq > uniqurls
+
+from this directory (which contains .w3mirc)
