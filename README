@@ -1,4 +1,4 @@
-donatefaces
+
 
     by Joseph Turian
 
@@ -12,6 +12,13 @@ USAGE:
     ./smooth_faces.py 2QlGj_GPPi4.flv.faces > 2QlGj_GPPi4.flv.facechains
     ./draw_facechains.py 2QlGj_GPPi4.flv 2QlGj_GPPi4.flv.facechains 2QlGj_GPPi4.facechains.mp4
 
+    youtube-dl 'http://www.youtube.com/watch?v=Hde4s-xBhqE'
+    ./detect_faces.py Hde4s-xBhqE.flv > Hde4s-xBhqE.flv.faces
+    ./draw_faces.py Hde4s-xBhqE.flv Hde4s-xBhqE.flv.faces Hde4s-xBhqE.faces.mp4
+    ./smooth_faces.py Hde4s-xBhqE.flv.faces > Hde4s-xBhqE.flv.facechains
+    ./draw_facechains.py Hde4s-xBhqE.flv Hde4s-xBhqE.flv.facechains Hde4s-xBhqE.facechains.mp4
+
+If you want to crawl youtube video URLs, check out crawl/
 
 
 REQUIREMENTS:
@@ -30,9 +37,16 @@ REQUIREMENTS:
             http://stackoverflow.com/questions/2195441/opencv-2-0-and-python
             (See comment by ezod)
     * My Python common library:
-        http://github.com/turian/common
+        http://github.com/turian/commono
     * youtube-dl:
         http://bitbucket.org/rg3/youtube-dl/
+
+        Always use the latest version of youtube-dl (the HG current version).
+
+    * numpy
+
+TODO:
+    * Compute sha1sum after downloading a video
 
 IMPLICIT REQUIREMENTS (things required by REQUIREMENTS):
     * ffmpeg

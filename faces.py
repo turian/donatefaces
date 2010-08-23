@@ -3,6 +3,8 @@
 Module for storing face tracking data.
 """
 
+import numpy
+
 class Face:
     """
     A single Face.
@@ -105,6 +107,39 @@ class FaceChain:
             if len(self.data) > j+1:
                 assert self.data[j+1][0] == self.data[j][0]+1
 
+    def join(self, chain):
+        """
+        Join this chain to a subsequent chain.
+        """
+        self.data += chain.data
+        self.sanity_check()
+
+    @property
+    def firstitem(self):
+        self.sanity_check()
+        return self.data[0]
+
+    @property
+    def lastitem(self):
+        self.sanity_check()
+        return self.data[-1]
+
+    @property
+    def firstframe(self):
+        return self.firstitem[0]
+
+    @property
+    def lastframe(self):
+        return self.lastitem[0]
+
+    @property
+    def firstface(self):
+        return self.firstitem[1]
+
+    @property
+    def lastface(self):
+        return self.lastitem[1]
+
     def __cmp__(self, other):
         return cmp(self.data, other.data)
 
@@ -123,7 +158,7 @@ class FaceChains:
     """
     Class to store face tracking data.
     Unless Faces, which stores each frame in isolation, we have a member
-    variable called "chains". "chains" is a list of type Chain.
+    variable called "chains". "chains" is a list of type FaceChain.
     """
 
     def __init__(self):
@@ -143,6 +178,112 @@ class FaceChains:
 #        else: self.width = width
 #        if "height" in self.__dict__: assert self.height == height
 #        else: self.height = height
+
+    @property
+    def totalfaces(self):
+        tot = 0
+        for chain in self.chains:
+            tot += len(chain.data)
+        return tot
+
+
+    def join_nearby(self, framediff, MAXSQRERR = 0.01):
+        """
+        Find face chains that are framediff frames apart, and then join them if they are near to each other.
+
+        Maximum squared error between the bounding boxes of subseq faces
+            MAXSQRERR = 0.01
+            #MAXSQRERR = 0.02 # too high
+        """
+
+        origtotalfaces = self.totalfaces
+
+        firstframe_to_chains = {}
+        for chain in self.chains:
+            if chain.firstframe not in firstframe_to_chains:
+                firstframe_to_chains[chain.firstframe] = []
+            firstframe_to_chains[chain.firstframe].append(chain)
+        lastframe_to_chains = {}
+        for chain in self.chains:
+            if chain.lastframe not in lastframe_to_chains:
+                lastframe_to_chains[chain.lastframe] = []
+            lastframe_to_chains[chain.lastframe].append(chain)
+
+        prevlinks = {}
+        nextlinks = {}
+
+        def facenumpy(face, width, height):
+            (x1, y1, x2, y2) = face.bbox
+            x1 /= 1. * width
+            x2 /= 1. * width
+            y1 /= 1. * height
+            y2 /= 1. * height
+            return numpy.array((x1, y1, x2, y2))
+    
+        for chain1 in self.chains:
+            f1 = facenumpy(chain1.lastface, self.width, self.height)
+
+            # Find closestnextchain, the closest face in the next frame to this face
+            closestnextchaindiff = 1e99
+            closestnextchain = None
+
+            nextstartframe = chain1.lastframe + framediff
+            if nextstartframe not in firstframe_to_chains: continue
+            for chain2 in firstframe_to_chains[nextstartframe]:
+                f2 = facenumpy(chain2.firstface, self.width, self.height)
+                diff = numpy.sum(numpy.square(f1-f2))
+                if diff < closestnextchaindiff:
+                    closestnextchaindiff = diff
+                    closestnextchain = chain2
+
+            # Find closestprevchain, the closest face in the current frame to closestnextchain
+            closestprevchaindiff = 1e99
+            closestprevchain = None
+            prevlastframe = chain1.lastframe
+            fp1 = facenumpy(closestnextchain.firstface, self.width, self.height)
+            for pchain1 in lastframe_to_chains[prevlastframe]:
+                fp2 = facenumpy(pchain1.lastface, self.width, self.height)
+                diff = numpy.sum(numpy.square(fp1-fp2))
+                if diff < closestprevchaindiff:
+                    closestprevchaindiff = diff
+                    closestprevchain = pchain1
+
+            # If closestprevchain == chain1, i.e. if we have the nearest
+            # face in both directions when stepping through the frame,
+            # then we have a potential link
+            if chain1 != closestprevchain: continue
+    
+            # Also, the faces can't be too far apart
+            if closestnextchaindiff > MAXSQRERR: continue
+
+            nextlinks[chain1] = closestnextchain
+            prevlinks[closestnextchain] = chain1
+
+        newchains = []
+        usedalready = {}
+        for chain1 in self.chains:
+            if chain1 in usedalready: continue
+#            print "Orig chain", chain1
+            curchain = chain1
+            usedalready[curchain] = True
+            while curchain in nextlinks:
+                nextchain = nextlinks[curchain]
+                chain1.join(nextchain)
+                curchain = nextchain
+                usedalready[curchain] = True
+#            print "New chain", chain1
+            newchains.append(chain1)
+        self.chains = newchains
+
+#        print origtotalfaces, self.totalfaces
+        assert origtotalfaces == self.totalfaces
+
+    def deleteshortchains(self, MINLENGTH=15):
+        newchains = []
+        for chain in self.chains:
+            if len(chain.data) >= MINLENGTH:
+                newchains.append(chain)
+        self.chains = newchains
 
     def __getstate__(self):
         result = self.__dict__.copy()
